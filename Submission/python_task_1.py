@@ -52,12 +52,29 @@ print(multiply_matrix(matrix))
 
 
 def time_check(df):
+    day_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    df['startDay'] = pd.Categorical(df['startDay'], categories=day_order, ordered=True)
+    df['endDay'] = pd.Categorical(df['endDay'], categories=day_order, ordered=True)
   
-  
+    df['timestamp'] = pd.to_datetime(df['startDay'].astype(str) + ' ' + df['startTime'], errors='coerce')
+    df['end_timestamp'] = pd.to_datetime(df['endDay'].astype(str) + ' ' + df['endTime'], errors='coerce')
 
+    problematic_rows = df[pd.to_datetime(df['startDay'].astype(str) + ' ' + df['startTime'], errors='coerce').isnull() |
+                          pd.to_datetime(df['endDay'].astype(str) + ' ' + df['endTime'], errors='coerce').isnull()]
 
+    if not problematic_rows.empty:
+        print("Problematic rows:")
+        print(problematic_rows)
+        return pd.Series()
+      
+        time_check_result = (df.groupby(['id', 'id_2'])
+                         .apply(lambda x: (not x['timestamp'].empty) and
+                                          (x['timestamp'].min().floor('D') == x['timestamp'].max().floor('D')) and
+                                          (x['timestamp'].dt.dayofweek.nunique() == 7))
+                         .reset_index(drop=True))
+    return time_check_result
 
-
-
-
+df = pd.read_csv(r'C:\/Users\Acer\Desktop\ML\Untitled Folder 1\MapUp-Data-Assessment-F-main\datasets\dataset-2.csv')
+time_check_result = time_check(df)
+print(time_check_result)
 
