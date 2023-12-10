@@ -94,8 +94,35 @@ toll_rate_df = calculate_time_based_toll_rates(df)
 print(toll_rate_df)
 
 
+def calculate_time_based_toll_rates(df):
+    nw_df= df.copy()
+    time_ranges_weekdays = [(datetime.time(0, 0, 0), datetime.time(10, 0, 0)),
+                            (datetime.time(10, 0, 0), datetime.time(18, 0, 0)),
+                            (datetime.time(18, 0, 0), datetime.time(23, 59, 59))]
 
+    time_ranges_weekends = [(datetime.time(0, 0, 0), datetime.time(23, 59, 59))]
 
+    discount_factors_weekdays = [0.8, 1.2, 0.8]
+    discount_factor_weekends = 0.7
 
+    
+    nw_df['start_day'] = nw_df['timestamp'].dt.strftime('%A')
+    nw_df['start_time'] = nw_df['timestamp'].dt.time
+    nw_df['end_day'] = nw_df['end_timestamp'].dt.strftime('%A')
+    nw_df['end_time'] = nw_df['end_timestamp'].dt.time
+
+    for idx, (start, end) in enumerate(time_ranges_weekdays):
+        mask = (nw_df['start_time'] >= start) & (nw_df['start_time'] <= end) & (nw_df['start_day'].isin(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']))
+        nw_df.loc[mask, ['moto', 'car', 'rv', 'bus', 'truck']] *= discount_factors_weekdays[idx]
+
+    for start, end in time_ranges_weekends:
+        mask = (nw_df['start_time'] >= start) & (nw_df['start_time'] <= end) & (nw_df['start_day'].isin(['Saturday', 'Sunday']))
+        nw_df.loc[mask, ['moto', 'car', 'rv', 'bus', 'truck']] *= discount_factor_weekends
+
+    return nw_df
+
+df= results_id
+toll_rate_df = calculate_time_based_toll_rates(df)
+print(toll_rate_df)
 
 
