@@ -32,6 +32,7 @@ print(get_bus_indexes(df))
 
 def filter_routes(df):
   avg= df.groupby('truck')['route'].mean()
+  #routes= avg[avg > 7].index.tolist()
   routes= avg[avg > 7].tolist()
   routes.sort()
   return(filter_routes(df))
